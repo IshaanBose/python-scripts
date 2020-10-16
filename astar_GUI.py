@@ -1,3 +1,20 @@
+"""
+A* GUI Program
+==============
+
+NOTE: This is a WIP, currently this program only creates the main menu GUI and the maze GUI.
+
+This is a program that implements the A* path finding algorithm using GUI.
+
+Input is to be given in the form of 'x y'. All input is given in terms of number of cells and not pixels, so when we give 'Maze Dimensions'
+as '10 10', it means 10 cells by 10 cells and not 10px by 10px. Checking 'Yes' for 'Show Exploration' will show the exploration path of 
+the program. Due to the amount of changes being made to the GUI, this will cause the program to work slower than if 'Show Exploration' 
+was checked as 'No'.
+
+Once at the maze GUI, you can click on the cells to create/remove obstacles. Once you have added/removed the desired amount of obstacles, 
+you press the RETURN key to start the execution of the program.
+"""
+
 from tkinter import Tk
 from tkinter import Label
 from tkinter import Entry
