@@ -9,7 +9,7 @@ O O O O O G ...
 
 where S = starting node, G = goal node, | = blocked path, O = open path
 
-Output is as a list of nodes in the terminal but also in an x_path.txt (x is the name of the input file) file created in the same directory as the input .txt file.
+Output is displayed as a list of nodes in the terminal but also in an x_path.txt (x is the name of the input file) file created in the same directory as the input .txt file.
 Program only works if *all spots are filled*, given multiple starting and ending nodes will result in the program choosing the last occurrences of both.
 
 Output file legend: - = path from starting node to goal node, x - visited nodes, A - nodes still available to visit
