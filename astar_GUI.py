@@ -28,17 +28,31 @@ import pygame
 from pygame.locals import *
 from pygame import draw as pdraw
 
-def maze_gui():
-    """
-    Creates the maze and allows user to add obstacles. User can start A* by pressing the Return key.
-    """
-    pass
-
 class PygameMaze():
+    """
+    This class creates the maze GUI and contains functions that implements the A* algorithm.
+    """
     def __init__(self, maze_dim, start_node, goal_node, show_exp):
+        """
+        Initialises the maze GUI.
+        
+        Parameter
+        ---------
+        `maze_dim: list/tuple`
+            Dimensions of the maze in cells.
+            
+        `start_node: list/tuple`
+            Co-ordinates of starting node.
+            
+        `goal_node: list/tuple`
+            Co-ordinates of goal node.
+            
+        `show_exp: bool`
+            If True, shows the exploration path. If False, directly shows the path from starting node to goal node.
+        """
         self._running = False
         self._display = None
-        self.colors = {'black' : (0, 0, 0), 'white' : (255, 255, 255)}
+        self.colours = {'black' : (0, 0, 0), 'white' : (255, 255, 255)}
         self.size = self.width, self.height = maze_dim[0] * 20, maze_dim[1] * 20
         
     def on_init(self):
@@ -46,11 +60,11 @@ class PygameMaze():
         For initialising data before the display surface is shown and drawing all static elements of the maze.
         """
         self._display = pygame.display.set_mode(self.size, HWSURFACE | DOUBLEBUF)
-        self._display.fill(self.colors['white'])
+        self._display.fill(self.colours['white'])
         for i in range(0, self.width + 1, 20):
-            pdraw.line(self._display, self.colors['black'], (i, 0), (i, self.height))
+            pdraw.line(self._display, self.colours['black'], (i, 0), (i, self.height))
         for i in range(0, self.height + 1, 20):
-            pdraw.line(self._display, self.colors['black'], (0, i), (self.width, i))
+            pdraw.line(self._display, self.colours['black'], (0, i), (self.width, i))
         
         self._running = True
         pygame.init()
@@ -104,6 +118,15 @@ class TKMainMenu():
     Creates the main menu using tkinter.
     """
     def __init__(self, max_width = 70, max_height = 35):
+        """
+        Parameter
+        ---------
+        `max_width: int, optional`
+            Defines the maximum width, in terms of cells, allowed for the creation of the maze.
+            
+        `max_height: int, optional`
+            Defines the maximum height, in terms of cells, allowed for the creation of the maze.
+        """
         self.main = Tk()
         self.max_width = max_width
         self.max_height = max_height
