@@ -28,6 +28,14 @@ import pygame
 from pygame.locals import *
 from pygame import draw as pdraw
 
+class Node:
+    def __init__(self, pos, parent=None, g=0, h=0):
+        self.pos = pos
+        self.parent = parent
+        self.g = g
+        self.h = h
+        self.f = self.g + self.h
+
 class PygameMaze():
     """
     This class creates the maze GUI and contains functions that implements the A* algorithm.
@@ -52,7 +60,11 @@ class PygameMaze():
         """
         self._running = False
         self._display = None
-        self.colours = {'black' : (0, 0, 0), 'white' : (255, 255, 255)}
+        self.show_exp = show_exp
+        self.start_node = (start_node[0] * 20, start_node[1] * 20)
+        self.goal_node = (goal_node[0] * 20, goal_node[1] * 20)
+        self.blocked = list()
+        self.colours = {'black' : (0, 0, 0), 'white' : (255, 255, 255), 'green':(0, 255, 0), 'mustard yellow':(255, 208, 0)}
         self.size = self.width, self.height = maze_dim[0] * 20, maze_dim[1] * 20
         
     def on_init(self):
@@ -66,6 +78,9 @@ class PygameMaze():
         for i in range(0, self.height + 1, 20):
             pdraw.line(self._display, self.colours['black'], (0, i), (self.width, i))
         
+        pdraw.rect(self._display, self.colours['mustard yellow'], (self.start_node[0] + 1, self.start_node[1] + 1, 19, 19))
+        pdraw.rect(self._display, self.colours['green'], (self.goal_node[0] + 1, self.goal_node[1] + 1, 19, 19))
+        
         self._running = True
         pygame.init()
         
@@ -78,7 +93,27 @@ class PygameMaze():
         if event.type == KEYDOWN:
             if event.key == K_RETURN:
                 print('WHOA')
-            
+        if event.type == MOUSEBUTTONDOWN:
+            pos = pygame.mouse.get_pos()
+            self.draw_obstacle(pos)
+    
+    def draw_obstacle(self, mouse_pos):
+        stop = False
+        topx, topy = 0, 0
+        for i in range(0, self.width - 19, 20):
+            for j in range(0, self.height - 19, 20):
+                if (mouse_pos[0] >= i and mouse_pos[1] >= j) and (mouse_pos[0] <= i + 20 and mouse_pos[1] <= j + 20) and (i, j) not in self.blocked and (i, j) not in [self.start_node, self.goal_node]:
+                    topx, topy = i, j
+                    self.blocked.append((i, j))
+                    stop = True
+                    break
+            if stop:
+                break
+        
+        if stop:
+            pdraw.rect(self._display, self.colours['black'], (topx, topy, 20, 20))
+            print(self.blocked)
+    
     def on_loop(self):
         """
         For computing changes in the display surface.
