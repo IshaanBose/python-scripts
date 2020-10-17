@@ -143,7 +143,6 @@ class TKMainMenu():
         self._add_widgets()
         
         self.main.mainloop()
-        
     
     def _add_widgets(self):
         """
