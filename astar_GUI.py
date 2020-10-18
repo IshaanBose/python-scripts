@@ -340,10 +340,10 @@ class TKMainMenu():
         if maze_dim[0] > self.max_width or maze_dim[1] > self.max_height:
             error[1] += 'Max maze dimension allowed: 70 35! '
             error[0] = True
-        if start_node[0] > maze_dim[0] or start_node[1] > maze_dim[1]:
+        if start_node[0] >= maze_dim[0] or start_node[1] >= maze_dim[1] or start_node[0] < 0 or start_node[1] < 0:
             error[1] += 'Start node must be within maze dimensions! '
             error[0] = True
-        if goal_node[0] > maze_dim[0] or goal_node[1] > maze_dim[1]:
+        if goal_node[0] >= maze_dim[0] or goal_node[1] >= maze_dim[1] or goal_node[0] < 0 or goal_node[1] < 0:
             error[1] += 'Goal node must be within maze dimensions! '
             error[0] = True
         
