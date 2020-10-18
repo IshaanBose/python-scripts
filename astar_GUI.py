@@ -2,17 +2,15 @@
 A* GUI Program
 ==============
 
-NOTE: This is a WIP, currently this program only creates the main menu GUI and the maze GUI.
-
 This is a program that implements the A* path finding algorithm using GUI.
 
-Input is to be given in the form of 'x y'. All input is given in terms of number of cells and not pixels, so when we give 'Maze Dimensions'
-as '10 10', it means 10 cells by 10 cells and not 10px by 10px. Checking 'Yes' for 'Show Exploration' will show the exploration path of 
-the program. Due to the amount of changes being made to the GUI, this will cause the program to work slower than if 'Show Exploration' 
-was checked as 'No'.
+Input is to be given in the form of 'x y'. Input for 'Maze Dimensions' is given in terms of cells, not pixels. Checking 'Yes' for 
+'Show Exploration' will show the exploration path of the algorithm. Due to the amount of changes being made to the GUI, this will cause 
+the program to work slower than if 'Show Exploration' was checked as 'No'.
 
-Once at the maze GUI, you can click on the cells to create/remove obstacles. Once you have added/removed the desired amount of obstacles, 
-you press the RETURN key to start the execution of the program.
+Once at the maze GUI, you can click on the cells to create obstacles. Once you have added the desired amount of obstacles, you press the 
+`RETURN` key to start the execution of the program. Pressing `Space` will clear the maze of any obstacles and paths. Pressing `Ctrl+Space` 
+will clear only paths while keeping obstacles. Closing the maze screen allows you to go back to the maze creation screen.
 """
 
 from tkinter import Tk
@@ -30,6 +28,9 @@ from pygame import draw as pdraw
 import math
 
 class Node:
+    """
+    This class is used to create tangible nodes for the A* algo to work on.
+    """
     def __init__(self, pos, parent=None, g=0, h=0):
         self.pos = pos
         self.parent = parent
@@ -38,6 +39,9 @@ class Node:
         self.f = self.g + self.h
         
 class AugList(list):
+    """
+    Behaves like a list with an added functionality used to find Nodes in it.
+    """
     def __init__(self, l):
         list.__init__(self, l)
         
@@ -110,6 +114,9 @@ class PygameMaze():
             self.draw_obstacle(pos)
     
     def find_path(self):
+        """
+        This functions implements the A* path finding algorithm for the maze.
+        """
         AVAILABLE = AugList(list())
         VISITED = AugList(list())
         currnode = Node(self.start_node, h=math.sqrt((self.start_node[0] - self.goal_node[0])**2 + (self.start_node[1] - self.goal_node[1])**2))
@@ -174,6 +181,9 @@ class PygameMaze():
         return
     
     def render_exploration(self, point, rtype):
+        """
+        This function is used to show how nodes are explored when A* runs.
+        """
         if rtype == 'visited':
             pdraw.rect(self._display, self.colours['red'], (point[0] + 1, point[1] + 1, 19, 19))
         elif rtype == 'available':
@@ -183,6 +193,9 @@ class PygameMaze():
         pygame.display.update()
     
     def show_path(self, path):
+        """
+        This function is used to show the final path from the start node to goal node.
+        """
         if self.show_exp:
             pygame.time.wait(1000) # giving time for user to look at finished exploration, time is given in ms
             self.draw_maze()
@@ -193,6 +206,9 @@ class PygameMaze():
                 pdraw.rect(self._display, self.colours['light pink'], (i[0] + 1, i[1] + 1, 19, 19))
     
     def draw_maze(self):
+        """
+        This function is used to draw/redraw the maze.
+        """
         self._display.fill(self.colours['white'])
         
         for i in range(0, self.width + 1, 20):
@@ -204,10 +220,16 @@ class PygameMaze():
         pdraw.rect(self._display, self.colours['dark blue'], (self.goal_node[0] + 1, self.goal_node[1] + 1, 19, 19)) # goal node
     
     def redraw_obstacles(self):
+        """
+        This function is used to redraw the obstacles after redrawing the maze.
+        """
         for i in self.blocked:
             pdraw.rect(self._display, self.colours['black'], (i[0], i[1], 20, 20))
     
     def draw_obstacle(self, mouse_pos):
+        """
+        This function is used to draw an obstacle on the square the user clicks on.
+        """
         stop = False
         topx, topy = 0, 0
         for i in range(0, self.width - 19, 20):
