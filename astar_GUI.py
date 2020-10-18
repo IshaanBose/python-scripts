@@ -46,12 +46,6 @@ class AugList(list):
             if self[i].pos == node.pos:
                 return [True, i]
         return [False, i]
-    
-    def inlist2(self, node):
-        for i in range(len(self)):
-            if self[i].pos == node:
-                return True
-        return False
 
 class PygameMaze():
     """
@@ -81,7 +75,8 @@ class PygameMaze():
         self.start_node = (start_node[0] * 20, start_node[1] * 20)
         self.goal_node = (goal_node[0] * 20, goal_node[1] * 20)
         self.blocked = list()
-        self.colours = {'black' : (0, 0, 0), 'white' : (255, 255, 255), 'green':(0, 255, 0), 'mustard yellow':(255, 208, 0), 'light pink': (255, 122, 251)}
+        self.colours = {'black' : (0, 0, 0), 'white' : (255, 255, 255), 'green':(0, 255, 0), 'mustard yellow':(255, 208, 0),
+                        'light pink': (255, 122, 251), 'red': (255, 0, 0), 'dark blue': (2, 68, 173)}
         self.size = self.width, self.height = maze_dim[0] * 20, maze_dim[1] * 20
         
     def on_init(self):
@@ -101,10 +96,16 @@ class PygameMaze():
         """
         if event.type == QUIT:
             self._running = False
-        if event.type == KEYDOWN:
+        elif event.type == KEYDOWN:
             if event.key == K_RETURN:
                 self.find_path()
-        if event.type == MOUSEBUTTONDOWN:
+            elif event.key == K_c and pygame.key.get_mods() & KMOD_CTRL:
+                self.draw_maze()
+                self.redraw_obstacles()
+            elif event.key == K_c:
+                self.blocked.clear()
+                self.draw_maze()
+        elif event.type == MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
             self.draw_obstacle(pos)
     
@@ -116,32 +117,37 @@ class PygameMaze():
         AVAILABLE.append(currnode)
         
         while len(AVAILABLE) != 0:
+            for event in pygame.event.get(): # to make sure app doesn't crash and that no events are pushed into event queue during execution of A*
+                pygame.event.pump()
+                
             currnode = AVAILABLE[0]
             for node in AVAILABLE:
                 if node.f < currnode.f:
                     currnode = node
             
             VISITED.append(currnode)
+            if self.show_exp:
+                self.render_exploration(currnode.pos, 'visited')
             
             if currnode.pos == goal.pos:
                 path = list()
                 while currnode:
                     path.append(currnode.pos)
                     currnode = currnode.parent
-                return self.show_path(list(reversed(path)))
+                return self.show_path(path)
             
             children = list()
-            for i in [[-20, -20], [-20, 0], [-20, 20], [0, -20], [0, 20], [20, -20], [20, 0], [20, 20]]:
+            for i in [[-20, 0], [0, -20], [0, 20], [20, 0], [20, 20], [-20, -20], [20, -20], [-20, 20]]:
                 if currnode.pos[0] + i[0] < 0 or currnode.pos[1] + i[1] < 0 or currnode.pos[0] + i[0] >= self.width or currnode.pos[1] + i[1] >= self.height:
                     continue
                 
-                if currnode.pos in self.blocked:
+                if (currnode.pos[0] + i[0], currnode.pos[1] + i[1]) in self.blocked:
                     continue
                 
                 if i in [[-20, -20], [-20, 20], [20, -20], [20, 20]]:
-                    child = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 1.414)
+                    child = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 28.28)
                 else:
-                    child = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 1)
+                    child = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 20)
                 children.append(child)
                 
             for child in children:
@@ -150,21 +156,37 @@ class PygameMaze():
                         child.g += currnode.g
                         child.f = child.g + math.sqrt((child.pos[0] - goal.pos[0])**2 + (child.pos[1] - goal.pos[1])**2)
                         AVAILABLE.append(child)
+                        if self.show_exp:
+                            self.render_exploration(child.pos, 'available')
                     else:
                         openchild = AVAILABLE[AVAILABLE.inlist(child)[1]] # if the node is already available to visit, we want to check if there is a better path for it
                         if openchild.g > child.g + currnode.g:
                             openchild.g = child.g + currnode.g
                             openchild.f = openchild.g + math.sqrt((child.pos[0] - goal.pos[0])**2 + (child.pos[1] - goal.pos[1])**2)
                             openchild.parent = currnode
-                            
+                
             AVAILABLE.remove(currnode)
-        
-        print('No path found.')
+        # Just for popup :(
+        temp = Tk()
+        temp.geometry('0x0')
+        showwarning('No Path Found!', "No path found! Press 'C' to clear the screen.")
+        temp.destroy()
         return
+    
+    def render_exploration(self, point, rtype):
+        if rtype == 'visited':
+            pdraw.rect(self._display, self.colours['red'], (point[0] + 1, point[1] + 1, 19, 19))
+        elif rtype == 'available':
+            pdraw.rect(self._display, self.colours['green'], (point[0] + 1, point[1] + 1, 19, 19))
+        
+        pygame.time.wait(100)
+        pygame.display.update()
     
     def show_path(self, path):
         if self.show_exp:
+            pygame.time.wait(1000) # giving time for user to look at finished exploration, time is given in ms
             self.draw_maze()
+            self.redraw_obstacles()
         
         for i in path:
             if i != self.start_node and i != self.goal_node:
@@ -178,8 +200,12 @@ class PygameMaze():
         for i in range(0, self.height + 1, 20):
             pdraw.line(self._display, self.colours['black'], (0, i), (self.width, i))
         
-        pdraw.rect(self._display, self.colours['mustard yellow'], (self.start_node[0] + 1, self.start_node[1] + 1, 19, 19))
-        pdraw.rect(self._display, self.colours['green'], (self.goal_node[0] + 1, self.goal_node[1] + 1, 19, 19))
+        pdraw.rect(self._display, self.colours['mustard yellow'], (self.start_node[0] + 1, self.start_node[1] + 1, 19, 19)) # start node
+        pdraw.rect(self._display, self.colours['dark blue'], (self.goal_node[0] + 1, self.goal_node[1] + 1, 19, 19)) # goal node
+    
+    def redraw_obstacles(self):
+        for i in self.blocked:
+            pdraw.rect(self._display, self.colours['black'], (i[0], i[1], 20, 20))
     
     def draw_obstacle(self, mouse_pos):
         stop = False
@@ -193,28 +219,16 @@ class PygameMaze():
                     break
             if stop:
                 break
-        
         if stop:
             pdraw.rect(self._display, self.colours['black'], (topx, topy, 20, 20))
-            print(self.blocked)
-    
-    def on_loop(self):
-        """
-        For computing changes in the display surface.
-        """
-        pass
-    
-    def on_render(self):
-        """
-        For rendering the graphics on the display surface.
-        """
-        pygame.display.update()
     
     def on_cleanup(self):
         """
         For handling all operations to be done before the game loop is broken.
         """
         pygame.quit()
+        del self # deletes current instance of of the maze
+        TKMainMenu()
     
     def on_execute(self):
         """
@@ -224,12 +238,8 @@ class PygameMaze():
         
         while self._running:
             for event in pygame.event.get():
-                
                 self.on_event(event)
-                
-            self.on_loop()
-            self.on_render()
-            
+            pygame.display.update()
         self.on_cleanup()
 
 class TKMainMenu():
