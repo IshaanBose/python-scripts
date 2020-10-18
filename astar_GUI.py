@@ -8,9 +8,9 @@ Input is to be given in the form of 'x y'. Input for 'Maze Dimensions' is given 
 'Show Exploration' will show the exploration path of the algorithm. Due to the amount of changes being made to the GUI, this will cause 
 the program to work slower than if 'Show Exploration' was checked as 'No'.
 
-Once at the maze GUI, you can click on the cells to create obstacles. Once you have added the desired amount of obstacles, you press the 
-`RETURN` key to start the execution of the program. Pressing `Space` will clear the maze of any obstacles and paths. Pressing `Ctrl+Space` 
-will clear only paths while keeping obstacles. Closing the maze screen allows you to go back to the maze creation screen.
+Once at the maze GUI, you can click on the cells to create/remove obstacles. Once you have added/deleted the desired amount of obstacles, 
+you press the `RETURN` key to start the execution of the program. Pressing `Space` will clear the maze of any obstacles and paths. 
+Pressing `Ctrl+Space` will clear only paths while keeping obstacles. Closing the maze screen allows you to go back to the maze creation screen.
 """
 
 from tkinter import Tk
@@ -103,15 +103,15 @@ class PygameMaze():
         elif event.type == KEYDOWN:
             if event.key == K_RETURN:
                 self.find_path()
-            elif event.key == K_c and pygame.key.get_mods() & KMOD_CTRL:
+            elif event.key == K_SPACE and pygame.key.get_mods() & KMOD_CTRL:
                 self.draw_maze()
                 self.redraw_obstacles()
-            elif event.key == K_c:
+            elif event.key == K_SPACE:
                 self.blocked.clear()
                 self.draw_maze()
         elif event.type == MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
-            self.draw_obstacle(pos)
+            self.modify_obstacle(pos)
     
     def find_path(self):
         """
@@ -226,23 +226,21 @@ class PygameMaze():
         for i in self.blocked:
             pdraw.rect(self._display, self.colours['black'], (i[0], i[1], 20, 20))
     
-    def draw_obstacle(self, mouse_pos):
+    def modify_obstacle(self, mouse_pos):
         """
-        This function is used to draw an obstacle on the square the user clicks on.
+        This function is used to draw/remove an obstacle on the square the user clicks on.
         """
-        stop = False
-        topx, topy = 0, 0
         for i in range(0, self.width - 19, 20):
             for j in range(0, self.height - 19, 20):
-                if (mouse_pos[0] >= i and mouse_pos[1] >= j) and (mouse_pos[0] <= i + 20 and mouse_pos[1] <= j + 20) and (i, j) not in self.blocked and (i, j) not in [self.start_node, self.goal_node]:
-                    topx, topy = i, j
-                    self.blocked.append((i, j))
-                    stop = True
-                    break
-            if stop:
-                break
-        if stop:
-            pdraw.rect(self._display, self.colours['black'], (topx, topy, 20, 20))
+                if (mouse_pos[0] >= i and mouse_pos[1] >= j) and (mouse_pos[0] <= i + 20 and mouse_pos[1] <= j + 20) and (i, j) not in [self.start_node, self.goal_node]:
+                    if (i, j) not in self.blocked:
+                        self.blocked.append((i, j))
+                        pdraw.rect(self._display, self.colours['black'], (i, j, 20, 20))
+                        return
+                    else:
+                        self.blocked.remove((i, j))
+                        pdraw.rect(self._display, self.colours['white'], (i + 1, j + 1, 19, 19))
+                        return
     
     def on_cleanup(self):
         """
