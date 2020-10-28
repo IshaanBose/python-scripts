@@ -26,30 +26,8 @@ import pygame
 from pygame.locals import *
 from pygame import draw as pdraw
 import math
-
-class Node:
-    """
-    This class is used to create tangible nodes for the A* algo to work on.
-    """
-    def __init__(self, pos, parent=None, g=0, h=0):
-        self.pos = pos
-        self.parent = parent
-        self.g = g
-        self.h = h
-        self.f = self.g + self.h
-        
-class AugList(list):
-    """
-    Behaves like a list with an added functionality used to find Nodes in it.
-    """
-    def __init__(self, l):
-        list.__init__(self, l)
-        
-    def inlist(self, node):
-        for i in range(len(self)):
-            if self[i].pos == node.pos:
-                return [True, i]
-        return [False, i]
+from _datastructs import *
+import path_finding as pf
 
 class PygameMaze():
     """
@@ -102,7 +80,7 @@ class PygameMaze():
             self._running = False
         elif event.type == KEYDOWN:
             if event.key == K_RETURN:
-                self.find_path()
+                pf.astar_path(self)
             elif event.key == K_SPACE and pygame.key.get_mods() & KMOD_CTRL:
                 self.draw_maze()
                 self.redraw_obstacles()
@@ -113,72 +91,21 @@ class PygameMaze():
             pos = pygame.mouse.get_pos()
             self.modify_obstacle(pos)
     
-    def find_path(self):
+    def pump_events(self):
         """
-        This functions implements the A* path finding algorithm for the maze.
+        This function gives event control to OS to prevent application crashing while it's showing exploration.
         """
-        AVAILABLE = AugList(list())
-        VISITED = AugList(list())
-        currnode = Node(self.start_node, h=math.sqrt((self.start_node[0] - self.goal_node[0])**2 + (self.start_node[1] - self.goal_node[1])**2))
-        goal = Node(self.goal_node)
-        AVAILABLE.append(currnode)
-        
-        while len(AVAILABLE) != 0:
-            for event in pygame.event.get(): # to make sure app doesn't crash and that no events are pushed into event queue during execution of A*
+        for event in pygame.event.get(): # to make sure app doesn't crash and that no events are pushed into event queue during execution of A*
                 pygame.event.pump()
-                
-            currnode = AVAILABLE[0]
-            for node in AVAILABLE:
-                if node.f < currnode.f:
-                    currnode = node
-            
-            VISITED.append(currnode)
-            if self.show_exp:
-                self.render_exploration(currnode.pos, 'visited')
-            
-            if currnode.pos == goal.pos:
-                path = list()
-                while currnode:
-                    path.append(currnode.pos)
-                    currnode = currnode.parent
-                return self.show_path(path)
-            
-            children = list()
-            for i in [[-20, 0], [0, -20], [0, 20], [20, 0], [20, 20], [-20, -20], [20, -20], [-20, 20]]:
-                if currnode.pos[0] + i[0] < 0 or currnode.pos[1] + i[1] < 0 or currnode.pos[0] + i[0] >= self.width or currnode.pos[1] + i[1] >= self.height:
-                    continue
-                
-                if (currnode.pos[0] + i[0], currnode.pos[1] + i[1]) in self.blocked:
-                    continue
-                
-                if i in [[-20, -20], [-20, 20], [20, -20], [20, 20]]:
-                    child = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 28.28)
-                else:
-                    child = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 20)
-                children.append(child)
-                
-            for child in children:
-                if not VISITED.inlist(child)[0]: # heuristic is consistent, so no need to re-visit nodes
-                    if not AVAILABLE.inlist(child)[0]:
-                        child.g += currnode.g
-                        child.f = child.g + math.sqrt((child.pos[0] - goal.pos[0])**2 + (child.pos[1] - goal.pos[1])**2)
-                        AVAILABLE.append(child)
-                        if self.show_exp:
-                            self.render_exploration(child.pos, 'available')
-                    else:
-                        openchild = AVAILABLE[AVAILABLE.inlist(child)[1]] # if the node is already available to visit, we want to check if there is a better path for it
-                        if openchild.g > child.g + currnode.g:
-                            openchild.g = child.g + currnode.g
-                            openchild.f = openchild.g + math.sqrt((child.pos[0] - goal.pos[0])**2 + (child.pos[1] - goal.pos[1])**2)
-                            openchild.parent = currnode
-                
-            AVAILABLE.remove(currnode)
-        # Just for popup :(
+    
+    def tk_popup(self, title, message):
+        """"
+        This function is used to bring up a popup window using Tkinter.
+        """
         temp = Tk()
         temp.geometry('0x0')
-        showwarning('No Path Found!', "No path found! Press 'C' to clear the screen.")
+        showwarning(title, message)
         temp.destroy()
-        return
     
     def render_exploration(self, point, rtype):
         """
@@ -352,6 +279,3 @@ class TKMainMenu():
         else:
             self.main.destroy()
             PygameMaze(maze_dim, start_node, goal_node, self.show_exp.get()).on_execute()
-
-if __name__ == '__main__':
-    TKMainMenu()
