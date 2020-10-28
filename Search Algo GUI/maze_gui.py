@@ -19,8 +19,13 @@ from tkinter import Entry
 from tkinter import Button
 from tkinter import SOLID
 from tkinter import Radiobutton
+from tkinter import Frame
+from tkinter import Text
+from tkinter import ttk
 from tkinter import font as tkfont
 from tkinter import BooleanVar
+from tkinter import StringVar
+from tkinter import INSERT
 from tkinter.messagebox import showwarning
 import pygame
 from pygame.locals import *
@@ -33,7 +38,7 @@ class PygameMaze():
     """
     This class creates the maze GUI and contains functions that implements the A* algorithm.
     """
-    def __init__(self, maze_dim, start_node, goal_node, show_exp):
+    def __init__(self, maze_dim, start_node, goal_node, show_exp, algo):
         """
         Initialises the maze GUI.
         
@@ -54,6 +59,8 @@ class PygameMaze():
         self._running = False
         self._display = None
         self.show_exp = show_exp
+        self.algo = algo
+        print(self.algo)
         self.start_node = (start_node[0] * 20, start_node[1] * 20)
         self.goal_node = (goal_node[0] * 20, goal_node[1] * 20)
         self.blocked = list()
@@ -175,7 +182,7 @@ class PygameMaze():
         """
         pygame.quit()
         del self # deletes current instance of of the maze
-        TKMainMenu()
+        TkRoot()
     
     def on_execute(self):
         """
@@ -189,11 +196,37 @@ class PygameMaze():
             pygame.display.update()
         self.on_cleanup()
 
-class TKMainMenu():
+class TkRoot(Tk):
+    def __init__(self, *args, **kwargs):
+        Tk.__init__(self, *args, **kwargs)
+        
+        self.title('Path Finder')
+        self.geometry('500x500')
+        self.resizable(False, False)
+        self.frames = dict()
+        container = Frame(self)
+        container.pack(side='top', fill='both', expand=True)
+        
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+        
+        for F in (TkMainMenu, TkInstructions):
+            frame = F(container, self)
+            self.frames[F] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
+        
+        self.show_frame(TkMainMenu)
+        self.mainloop()
+
+    def show_frame(self, cont):
+        frame = self.frames[cont]
+        frame.tkraise()
+
+class TkMainMenu(Frame):
     """
     Creates the main menu using tkinter.
     """
-    def __init__(self, max_width = 70, max_height = 35):
+    def __init__(self, parent, controller: TkRoot, max_width = 70, max_height = 35):
         """
         Parameter
         ---------
@@ -203,79 +236,136 @@ class TKMainMenu():
         `max_height: int, optional`
             Defines the maximum height, in terms of cells, allowed for the creation of the maze.
         """
-        self.main = Tk()
+        Frame.__init__(self, parent)
+        
+        self.controller = controller
         self.max_width = max_width
         self.max_height = max_height
-        self.show_exp = BooleanVar()
         self.title_font = tkfont.Font(family='Times', size=32, weight='bold')
         self.label_font = tkfont.Font(family='Times', size=16)
         self.button_font = tkfont.Font(family='Times', size=13)
         
-        self.main.title('Create Maze')
-        self.main.geometry('500x410')
-        self.main.resizable(False, False)
-        self.show_exp.set(False)
-        
         self._add_widgets()
-        
-        self.main.mainloop()
     
     def _add_widgets(self):
         """
         Adds all widgets to the GUI.
         """
         # Label: A* GUI Program
-        Label(self.main, text='A* GUI Program', font=self.title_font).grid(row=0, column=0, columnspan=3, ipadx=75, ipady=30)
+        Label(self, text='A* GUI Program', font=self.title_font).grid(row=0, column=0, columnspan=3, ipadx=75, ipady=30)
         # Label: Maze Dimensions
-        Label(self.main, text='Maze Dimensions:', font=self.label_font).grid(row=1, column=0, ipadx=30, ipady=10)
+        Label(self, text='Maze Dimensions:', font=self.label_font).grid(row=1, column=0, ipadx=30, ipady=10)
         # Entry: for getting maze dimensions
-        maze_dim = Entry(self.main, width=40, bd=1, relief=SOLID)
+        maze_dim = Entry(self, width=40, bd=1, relief=SOLID)
         maze_dim.grid(row=1, column=1, columnspan=2)
         #Label: Start Node:
-        Label(self.main, text='Start Node:', font=self.label_font).grid(row=2, column=0, ipady=10)
+        Label(self, text='Start Node:', font=self.label_font).grid(row=2, column=0, ipady=10)
         #Entry: for getting starting node
-        start_node = Entry(self.main, width=40, bd=1, relief=SOLID)
+        start_node = Entry(self, width=40, bd=1, relief=SOLID)
         start_node.grid(row=2, column=1, columnspan=2)
         #Label: Goal Node:
-        Label(self.main, text='Goal Node:', font=self.label_font).grid(row=3, column=0, ipady=10)
+        Label(self, text='Goal Node:', font=self.label_font).grid(row=3, column=0, ipady=10)
         #Entry: for getting goal node
-        goal_node = Entry(self.main, width=40, bd=1, relief=SOLID)
+        goal_node = Entry(self, width=40, bd=1, relief=SOLID)
         goal_node.grid(row=3, column=1, columnspan=2)
         #Label: Show Exploration:
-        Label(self.main, text='Show Exploration:', font=self.label_font).grid(row=4, column=0)
+        Label(self, text='Show Exploration:', font=self.label_font).grid(row=4, column=0, ipady=10)
         #Radiobutton: configurations for radio buttons
-        r1 = Radiobutton(self.main, text='Yes', variable=self.show_exp, value=True)
-        r2 = Radiobutton(self.main, text='No', variable=self.show_exp, value=False)
+        show_exp = BooleanVar()
+        show_exp.set(False)
+        r1 = Radiobutton(self, text='Yes', variable=show_exp, value=True)
+        r2 = Radiobutton(self, text='No', variable=show_exp, value=False)
         r1['font'] = r2['font'] = self.label_font
         r1.grid(row=4, column=1)
         r2.grid(row=4, column=2)
+        #Label: Path finding algo
+        Label(self, text='Path Finding Algo:', font=self.label_font).grid(row=5, column=0, ipady=10)
+        #Dropdown list: config for dropdown list
+        algo = StringVar()
+        algo_cb = ttk.Combobox(self, width=20, textvariable=algo, state='readonly')
+        algo_cb['values'] = ('A*', 'BFS', 'DFS', 'RBFS')
+        algo_cb.current(0)
+        algo_cb.grid(row=5, column=1, columnspan=2, ipadx=50)
         #Button: configuration for button
-        button = Button(self.main, text='Create Maze', width=20, bg='white', bd=1, relief=SOLID, 
-                        command=lambda: self.check_maze_constraints(maze_dim.get(), start_node.get(), goal_node.get()))
+        button = Button(self, text='Create Maze', width=20, bg='white', bd=1, relief=SOLID, 
+                        command=lambda: self.check_maze_constraints(maze_dim.get(), start_node.get(), goal_node.get(), show_exp.get(), algo.get()))
         button['font'] = self.button_font
-        button.grid(row=5, column=0, columnspan=3, ipady=5, pady=30)
+        button.grid(row=6, column=0, columnspan=3, ipady=5, pady=30)
+        #Instructions
+        inst = Label(self, text='Instructions', fg='blue', font=('Times 10'))
+        inst.grid(row=7, column=0, columnspan=3)
+        inst.bind('<Button-1>', self.show_instructions)
 
-    def check_maze_constraints(self, maze_dim, start_node, goal_node):
+    def show_instructions(self, event):
+        self.controller.show_frame(TkInstructions)
+
+    def check_maze_constraints(self, maze_dim, start_node, goal_node, show_exp, algo):
         """
         Checks the maze constraints entered by user to make sure they are vaiid for the creation of the maze. 
         """
         error = [False, '']
-        maze_dim = [int(i) for i in maze_dim.split()]
-        start_node = [int(i) for i in start_node.split()]
-        goal_node = [int(i) for i in goal_node.split()]
         
-        if maze_dim[0] > self.max_width or maze_dim[1] > self.max_height:
-            error[1] += 'Max maze dimension allowed: 70 35! '
-            error[0] = True
-        if start_node[0] >= maze_dim[0] or start_node[1] >= maze_dim[1] or start_node[0] < 0 or start_node[1] < 0:
-            error[1] += 'Start node must be within maze dimensions! '
-            error[0] = True
-        if goal_node[0] >= maze_dim[0] or goal_node[1] >= maze_dim[1] or goal_node[0] < 0 or goal_node[1] < 0:
-            error[1] += 'Goal node must be within maze dimensions! '
+        try:
+            maze_dim = [int(i) for i in maze_dim.split()]
+            start_node = [int(i) for i in start_node.split()]
+            goal_node = [int(i) for i in goal_node.split()]
+        except ValueError:
+            showwarning('Invalid maze constraints', 'Input must be numerical!')
+            return
+        
+        if len(maze_dim) != 2 or len(start_node) != 2 or len(goal_node) != 2:
+            showwarning('Invalid maze constraints', 'Give input in the form of: x y')
+            return
+        
+        try:
+            if maze_dim[0] > self.max_width or maze_dim[1] > self.max_height:
+                error[1] += 'Max maze dimension allowed: 70 35! '
+                error[0] = True
+            if start_node[0] >= maze_dim[0] or start_node[1] >= maze_dim[1] or start_node[0] < 0 or start_node[1] < 0:
+                error[1] += 'Start node must be within maze dimensions! '
+                error[0] = True
+            if goal_node[0] >= maze_dim[0] or goal_node[1] >= maze_dim[1] or goal_node[0] < 0 or goal_node[1] < 0:
+                error[1] += 'Goal node must be within maze dimensions! '
+                error[0] = True
+        except IndexError:
+            error[1] += "Cannot leave constraints empty!"
             error[0] = True
         
         if error[0]:
             showwarning("Invalid maze constraints!", error[1])
         else:
-            self.main.destroy()
-            PygameMaze(maze_dim, start_node, goal_node, self.show_exp.get()).on_execute()
+            self.controller.destroy()
+            PygameMaze(maze_dim, start_node, goal_node, show_exp, algo).on_execute()
+
+class TkInstructions(Frame):
+    def __init__(self, parent, controller: TkRoot):
+        Frame.__init__(self, parent)
+        
+        self.controller = controller
+        self.grid_propagate(False)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        
+        self.display_instructions()
+        
+    def display_instructions(self):
+        instmsg = '''Input is to be given in the form of 'x y', eg: 10 10. Input for 'Maze Dimensions' is given in terms of cells, not pixels. Both starting node and goal node take co-ordinates in the form of indices, eg: if maze dimensions = 10 10, then the top left cell would 0 0 and the bottom right cell would be 9 9. 
+\nChecking 'Yes' for 'Show Exploration' will show the exploration path of the algorithm. Due to the amount of changes being made to the GUI, this will cause the program to work slower than if 'Show Exploration' was checked as 'No'.
+\nChoosing different algorithms will change the way the program works, including the path and exploration.
+\nOnce at the maze GUI, you can click on the cells to create/remove obstacles. Once you have added/deleted the desired amount of obstacles, you press the `RETURN` key to start the execution of the program. Pressing `Space` will clear the maze of any obstacles and paths. Pressing `Ctrl+Space` will clear only paths while keeping obstacles. Closing the maze screen allows you to go back to the maze creation screen.'''
+
+        inst = Text(self, wrap='word', font=('Times 15'), padx=5)
+        inst.insert(INSERT, instmsg)
+        inst.configure(state='disabled')
+        inst.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+        
+        scrollb = ttk.Scrollbar(self, command=inst.yview)
+        scrollb.grid(row=0, column=1, sticky='nsew')
+        inst['yscrollcommand'] = scrollb.set
+        
+        back = Label(self, text='Go Back', fg='blue', font=('Times 10'))
+        back.grid(row=1, column=0)
+        back.bind('<Button-1>', self.go_back)
+    
+    def go_back(self, event):
+        self.controller.show_frame(TkMainMenu)

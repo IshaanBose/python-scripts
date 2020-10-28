@@ -1,5 +1,5 @@
-from maze_gui import TKMainMenu
+from maze_gui import TkRoot
 
 if __name__ == "__main__":
     print("Created by Ishaan Bose")
-    TKMainMenu()
+    TkRoot()
