@@ -1,16 +1,12 @@
 """
-A* GUI Program
-==============
+Path Finding Visualiser
+=======================
 
-This is a program that implements the A* path finding algorithm using GUI.
-
-Input is to be given in the form of 'x y'. Input for 'Maze Dimensions' is given in terms of cells, not pixels. Checking 'Yes' for 
-'Show Exploration' will show the exploration path of the algorithm. Due to the amount of changes being made to the GUI, this will cause 
-the program to work slower than if 'Show Exploration' was checked as 'No'.
-
-Once at the maze GUI, you can click on the cells to create/remove obstacles. Once you have added/deleted the desired amount of obstacles, 
-you press the `RETURN` key to start the execution of the program. Pressing `Space` will clear the maze of any obstacles and paths. 
-Pressing `Ctrl+Space` will clear only paths while keeping obstacles. Closing the maze screen allows you to go back to the maze creation screen.
+Provides the following classes:
+1. PygameMaze - used to create the maze
+2. TkRoot - root window for Tkinter
+3. TkMainMenu - used to display the main menu
+4. TkInstructions - used to display the instructions
 """
 
 from tkinter import Tk
@@ -27,10 +23,12 @@ from tkinter import BooleanVar
 from tkinter import StringVar
 from tkinter import INSERT
 from tkinter.messagebox import showwarning
+from tkinter.messagebox import showinfo
 import pygame
 from pygame.locals import *
 from pygame import draw as pdraw
 import math
+import os
 from _datastructs import *
 import path_finding as pf
 
@@ -55,12 +53,14 @@ class PygameMaze():
             
         `show_exp: bool`
             If True, shows the exploration path. If False, directly shows the path from starting node to goal node.
+            
+        `algo: str`
+            Contains which path finding algorithm to use.
         """
         self._running = False
         self._display = None
         self.show_exp = show_exp
         self.algo = algo
-        print(self.algo)
         self.start_node = (start_node[0] * 20, start_node[1] * 20)
         self.goal_node = (goal_node[0] * 20, goal_node[1] * 20)
         self.blocked = list()
@@ -73,6 +73,7 @@ class PygameMaze():
         For initialising data before the display surface is shown and drawing all static elements of the maze.
         """
         self._display = pygame.display.set_mode(self.size, HWSURFACE | DOUBLEBUF)
+        pygame.display.set_caption('Path Finding Visualiser')
         
         self.draw_maze()
         
@@ -87,31 +88,53 @@ class PygameMaze():
             self._running = False
         elif event.type == KEYDOWN:
             if event.key == K_RETURN:
-                pf.astar_path(self)
+                self.draw_maze()
+                self.redraw_obstacles()
+                if self.algo == 'A*':
+                    pf.astar_path(self)
+                elif self.algo == 'BFS':
+                    pf.bfs(self)
+                elif self.algo == 'DFS':
+                    pf.dfs(self)
             elif event.key == K_SPACE and pygame.key.get_mods() & KMOD_CTRL:
                 self.draw_maze()
                 self.redraw_obstacles()
             elif event.key == K_SPACE:
                 self.blocked.clear()
                 self.draw_maze()
+            elif event.key == K_1 or event.key == K_2 or event.key == K_3:
+                if event.key == K_1:
+                    self.algo = 'A*'
+                elif event.key == K_2:
+                    self.algo = 'BFS'
+                elif event.key == K_3:
+                    self.algo = 'DFS'
+                self.tk_popup('Algorithm Changed!', 'Algorithm changed to ' + self.algo, 'info')
         elif event.type == MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
             self.modify_obstacle(pos)
     
-    def pump_events(self):
+    def stop_path_finding(self):
         """
-        This function gives event control to OS to prevent application crashing while it's showing exploration.
+        This function is used to stop the execution of the path finding algorithm.
         """
-        for event in pygame.event.get(): # to make sure app doesn't crash and that no events are pushed into event queue during execution of A*
-                pygame.event.pump()
+        for event in pygame.event.get():
+            if event.type == KEYDOWN:
+                if event.key == K_RETURN:
+                    return 'STOP'
+            elif event.type == QUIT:
+                self.on_cleanup()
     
-    def tk_popup(self, title, message):
+    def tk_popup(self, title, message, poptype='warning'):
         """"
         This function is used to bring up a popup window using Tkinter.
         """
         temp = Tk()
         temp.geometry('0x0')
-        showwarning(title, message)
+        if poptype == 'warning':
+            showwarning(title, message)
+        else:
+            showinfo(title, message)
         temp.destroy()
     
     def render_exploration(self, point, rtype):
@@ -123,7 +146,7 @@ class PygameMaze():
         elif rtype == 'available':
             pdraw.rect(self._display, self.colours['green'], (point[0] + 1, point[1] + 1, 19, 19))
         
-        pygame.time.wait(100)
+        pygame.time.wait(50) # defines time interval between each update of exploration
         pygame.display.update()
     
     def show_path(self, path):
@@ -197,6 +220,9 @@ class PygameMaze():
         self.on_cleanup()
 
 class TkRoot(Tk):
+    """
+    Contains root window of Tkinter.
+    """
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         
@@ -219,12 +245,15 @@ class TkRoot(Tk):
         self.mainloop()
 
     def show_frame(self, cont):
+        """
+        Used to display frames.
+        """
         frame = self.frames[cont]
         frame.tkraise()
 
 class TkMainMenu(Frame):
     """
-    Creates the main menu using tkinter.
+    Creates the main menu frame.
     """
     def __init__(self, parent, controller: TkRoot, max_width = 70, max_height = 35):
         """
@@ -297,6 +326,9 @@ class TkMainMenu(Frame):
         inst.bind('<Button-1>', self.show_instructions)
 
     def show_instructions(self, event):
+        """
+        Displays the instructions frame.
+        """
         self.controller.show_frame(TkInstructions)
 
     def check_maze_constraints(self, maze_dim, start_node, goal_node, show_exp, algo):
@@ -338,6 +370,9 @@ class TkMainMenu(Frame):
             PygameMaze(maze_dim, start_node, goal_node, show_exp, algo).on_execute()
 
 class TkInstructions(Frame):
+    """
+    Creates the Instructions frame.
+    """
     def __init__(self, parent, controller: TkRoot):
         Frame.__init__(self, parent)
         
@@ -349,12 +384,15 @@ class TkInstructions(Frame):
         self.display_instructions()
         
     def display_instructions(self):
-        instmsg = '''Input is to be given in the form of 'x y', eg: 10 10. Input for 'Maze Dimensions' is given in terms of cells, not pixels. Both starting node and goal node take co-ordinates in the form of indices, eg: if maze dimensions = 10 10, then the top left cell would 0 0 and the bottom right cell would be 9 9. 
-\nChecking 'Yes' for 'Show Exploration' will show the exploration path of the algorithm. Due to the amount of changes being made to the GUI, this will cause the program to work slower than if 'Show Exploration' was checked as 'No'.
-\nChoosing different algorithms will change the way the program works, including the path and exploration.
-\nOnce at the maze GUI, you can click on the cells to create/remove obstacles. Once you have added/deleted the desired amount of obstacles, you press the `RETURN` key to start the execution of the program. Pressing `Space` will clear the maze of any obstacles and paths. Pressing `Ctrl+Space` will clear only paths while keeping obstacles. Closing the maze screen allows you to go back to the maze creation screen.'''
+        """
+        Sets instruction text.
+        """
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        filename = os.path.join(dirname, 'resources', 'instructions.txt')
+        with open(filename) as f:
+            instmsg = f.read()
 
-        inst = Text(self, wrap='word', font=('Times 15'), padx=5)
+        inst = Text(self, wrap='word', font=('Times 15'), padx=5, bg=self.controller.cget('bg'), relief='flat')
         inst.insert(INSERT, instmsg)
         inst.configure(state='disabled')
         inst.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
@@ -368,4 +406,7 @@ class TkInstructions(Frame):
         back.bind('<Button-1>', self.go_back)
     
     def go_back(self, event):
+        """
+        Used to go back to main menu.
+        """
         self.controller.show_frame(TkMainMenu)
