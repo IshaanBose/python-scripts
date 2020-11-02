@@ -31,7 +31,7 @@ def astar_path(mazegui):
                 currnode = currnode.parent
             return mazegui.show_path(path)
         
-        children = list()
+        neighbours = list()
         for i in [[-20, -20], [-20, 0], [-20, 20], [0, 20], [20, 20], [20, 0], [20, -20], [0, -20]]:
             if currnode.pos[0] + i[0] < 0 or currnode.pos[1] + i[1] < 0 or currnode.pos[0] + i[0] >= mazegui.width or currnode.pos[1] + i[1] >= mazegui.height:
                 continue
@@ -40,25 +40,25 @@ def astar_path(mazegui):
                 continue
             
             if i in [[-20, -20], [-20, 20], [20, 20], [20, -20]]:
-                child = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 28.28)
+                node = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 28.28)
             else:
-                child = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 20)
-            children.append(child)
+                node = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 20)
+            neighbours.append(node)
             
-        for child in children:
-            if not VISITED.inlist(child)[0]: # heuristic is consistent, so no need to re-visit nodes
-                if not AVAILABLE.inlist(child)[0]:
-                    child.g += currnode.g
-                    child.f = child.g + sqrt((child.pos[0] - goal.pos[0])**2 + (child.pos[1] - goal.pos[1])**2)
-                    AVAILABLE.append(child)
+        for node in neighbours:
+            if not VISITED.inlist(node)[0]: # heuristic is consistent, so no need to re-visit nodes
+                if not AVAILABLE.inlist(node)[0]:
+                    node.g += currnode.g
+                    node.f = node.g + sqrt((node.pos[0] - goal.pos[0])**2 + (node.pos[1] - goal.pos[1])**2)
+                    AVAILABLE.append(node)
                     if mazegui.show_exp:
-                        mazegui.render_exploration(child.pos, 'available')
+                        mazegui.render_exploration(node.pos, 'available')
                 else:
-                    openchild = AVAILABLE[AVAILABLE.inlist(child)[1]] # if the node is already available to visit, we want to check if there is a better path for it
-                    if openchild.g > child.g + currnode.g:
-                        openchild.g = child.g + currnode.g
-                        openchild.f = openchild.g + sqrt((child.pos[0] - goal.pos[0])**2 + (child.pos[1] - goal.pos[1])**2)
-                        openchild.parent = currnode
+                    opennode = AVAILABLE[AVAILABLE.inlist(node)[1]] # if the node is already available to visit, we want to check if there is a better path for it
+                    if opennode.g > node.g + currnode.g:
+                        opennode.g = node.g + currnode.g
+                        opennode.f = opennode.g + sqrt((node.pos[0] - goal.pos[0])**2 + (node.pos[1] - goal.pos[1])**2)
+                        opennode.parent = currnode
             
         AVAILABLE.remove(currnode)
     
@@ -145,3 +145,72 @@ def dfs(mazegui):
                     mazegui.render_exploration(node.pos, 'available')
     
     mazegui.tk_popup('No Path Found!', "No path found! Press 'Space' to clear the screen.")
+
+def rbfs(mazegui, currnode, flimit=float('inf')):
+    """
+    This function implements the A* path finding algorithm for the maze.
+    """
+    if not isinstance(currnode, Node):
+        currnode = Node(currnode, Node((-1, -1)))
+    if mazegui.show_exp:
+            mazegui.render_exploration(currnode.pos, 'visited')
+    
+    if currnode.pos == mazegui.goal_node:
+        path = list()
+        node = currnode
+        
+        while node:
+            if node.pos != (-1, -1):
+                path.append(node.pos)
+            node = node.parent
+        mazegui.show_path(path)
+        return True
+    
+    neighbours = list()
+    for i in [[-20, 20], [-20, 0], [-20, -20], [0, -20], [20, -20], [20, 0], [20, 20], [0, 20]]:
+        newx, newy = currnode.pos[0] + i[0], currnode.pos[1] + i[1]
+        if newx < 0 or newy < 0 or newx >= mazegui.width or newy >= mazegui.height:
+                continue
+        
+        if (newx, newy) == currnode.parent.pos:
+            continue
+        
+        if (newx, newy) in mazegui.blocked:
+            continue
+        
+        if i in [[-20, -20], [-20, 20], [20, 20], [20, -20]]:
+            node = Node((newx, newy), currnode, 28.28 + currnode.g, sqrt((newx - mazegui.goal_node[0])**2 + (newy - mazegui.goal_node[1])**2))
+        else:
+            node = Node((newx, newy), currnode, 20 + currnode.g, sqrt((newx - mazegui.goal_node[0])**2 + (newy - mazegui.goal_node[1])**2))
+        neighbours.append(node)
+    
+    if not neighbours:
+        currnode.f = float('inf')
+        mazegui.render_exploration(currnode.pos, 'clear')
+        return False
+    
+    for node in neighbours: # to ensure we're not unnecessarily moving away from the goal node
+        node.f = max(node.f, currnode.f)
+    
+    result = False
+    while not result:
+        if mazegui.stop_path_finding() == 'STOP':
+            return 
+        lnode = Node(None)
+        lnode.f, altf = float('inf'), float('inf')
+        
+        for node in neighbours:
+            if node.f < lnode.f:
+                if lnode.f != float('inf'):
+                    altf = lnode.f
+                lnode = node
+            elif node.f < altf:
+                altf = node.f
+        if lnode.f > flimit:
+            currnode.f = lnode.f
+            mazegui.render_exploration(currnode.pos, 'clear')
+            return False
+        else:
+            result = rbfs(mazegui, lnode, min(altf, flimit))
+        if result:
+            return True
