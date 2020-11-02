@@ -96,19 +96,23 @@ class PygameMaze():
                     pf.bfs(self)
                 elif self.algo == 'DFS':
                     pf.dfs(self)
+                elif self.algo == 'RBFS':
+                    pf.rbfs(self, self.start_node)
             elif event.key == K_SPACE and pygame.key.get_mods() & KMOD_CTRL:
                 self.draw_maze()
                 self.redraw_obstacles()
             elif event.key == K_SPACE:
                 self.blocked.clear()
                 self.draw_maze()
-            elif event.key == K_1 or event.key == K_2 or event.key == K_3:
+            elif event.key == K_1 or event.key == K_2 or event.key == K_3 or event.key == K_4:
                 if event.key == K_1:
                     self.algo = 'A*'
                 elif event.key == K_2:
                     self.algo = 'BFS'
                 elif event.key == K_3:
                     self.algo = 'DFS'
+                elif event.key == K_4:
+                    self.algo = 'RBFS'
                 self.tk_popup('Algorithm Changed!', 'Algorithm changed to ' + self.algo, 'info')
         elif event.type == MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
@@ -145,6 +149,8 @@ class PygameMaze():
             pdraw.rect(self._display, self.colours['red'], (point[0] + 1, point[1] + 1, 19, 19))
         elif rtype == 'available':
             pdraw.rect(self._display, self.colours['green'], (point[0] + 1, point[1] + 1, 19, 19))
+        elif rtype == 'clear':
+            pdraw.rect(self._display, self.colours['white'], (point[0] + 1, point[1] + 1, 19, 19))
         
         pygame.time.wait(50) # defines time interval between each update of exploration
         pygame.display.update()
