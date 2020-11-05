@@ -306,8 +306,8 @@ class TkMainMenu(Frame):
         """
         Adds all widgets to the GUI.
         """
-        # Label: A* GUI Program
-        Label(self, text='A* GUI Program', font=self.title_font).grid(row=0, column=0, columnspan=3, ipadx=75, ipady=30)
+        # Label: Path Finding Viusaliser
+        Label(self, text='Path Finding Viusaliser', font=self.title_font).grid(row=0, column=0, columnspan=4, ipadx=30, ipady=30)
         # Label: Maze Dimensions
         Label(self, text='Maze Dimensions:', font=self.label_font).grid(row=1, column=0, ipadx=30, ipady=10)
         # Entry: for getting maze dimensions
