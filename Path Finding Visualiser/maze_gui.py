@@ -33,7 +33,7 @@ import path_finding as pf
 
 class PygameMaze():
     """
-    This class creates the maze GUI and contains functions that implements many path finding algorithm.
+    This class creates the maze GUI and contains functions that implements many path finding algorithms.
     """
     def __init__(self, maze_dim, start_node, goal_node, show_exp, algo):
         """
