@@ -31,11 +31,13 @@ import math
 import os
 import path_finding as pf
 
+ROOT_X, ROOT_Y = 0, 0
+
 class PygameMaze():
     """
     This class creates the maze GUI and contains functions that implements many path finding algorithms.
     """
-    def __init__(self, maze_dim, start_node, goal_node, show_exp, algo):
+    def __init__(self, maze_dim, start_node, goal_node, show_exp, algo, x=50, y=50):
         """
         Initialises the maze GUI.
         
@@ -55,7 +57,15 @@ class PygameMaze():
             
         `algo: str`
             Contains which path finding algorithm to use.
+            
+        `x: int`
+            X-axis point where window will be placed.
+            
+        `y: int`
+            Y-axis point where window will be placed.
         """
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y) # to place window at (x, y) position
+        
         self._running = False
         self._display = None
         self.show_exp = show_exp
@@ -134,6 +144,7 @@ class PygameMaze():
         """
         temp = Tk()
         temp.geometry('0x0')
+        temp.wm_withdraw()
         if poptype == 'warning':
             showwarning(title, message)
         else:
@@ -230,12 +241,20 @@ class TkRoot(Tk):
     """
     Contains root window of Tkinter.
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self,  width=500, height=500, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         
         self.title('Path Finder')
-        self.geometry('500x500')
+        
+        global ROOT_X, ROOT_Y
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        ROOT_X = (screen_width // 4) - (width // 2)
+        ROOT_Y = int(screen_height / 2.5) - (height // 2)
+        
+        self.geometry('500x500+' + str(ROOT_X) + '+' + str(ROOT_Y))
         self.resizable(False, False)
+        
         self.frames = dict()
         container = Frame(self)
         container.pack(side='top', fill='both', expand=True)
@@ -373,8 +392,9 @@ class TkMainMenu(Frame):
         if error[0]:
             showwarning("Invalid maze constraints!", error[1])
         else:
+            global ROOT_X, ROOT_Y
             self.controller.destroy()
-            PygameMaze(maze_dim, start_node, goal_node, show_exp, algo).on_execute()
+            PygameMaze(maze_dim, start_node, goal_node, show_exp, algo, ROOT_X, ROOT_Y).on_execute()
 
 class TkInstructions(Frame):
     """
