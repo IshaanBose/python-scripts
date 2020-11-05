@@ -29,7 +29,6 @@ from pygame.locals import *
 from pygame import draw as pdraw
 import math
 import os
-from _datastructs import *
 import path_finding as pf
 
 class PygameMaze():
@@ -66,13 +65,13 @@ class PygameMaze():
         self.blocked = list()
         self.colours = {'black' : (0, 0, 0), 'white' : (255, 255, 255), 'green':(0, 255, 0), 'mustard yellow':(255, 208, 0),
                         'light pink': (255, 122, 251), 'red': (255, 0, 0), 'dark blue': (2, 68, 173)}
-        self.size = self.width, self.height = maze_dim[0] * 20, maze_dim[1] * 20
+        self.width, self.height = maze_dim[0] * 20, maze_dim[1] * 20
         
     def on_init(self):
         """
         For initialising data before the display surface is shown and drawing all static elements of the maze.
         """
-        self._display = pygame.display.set_mode(self.size, HWSURFACE | DOUBLEBUF)
+        self._display = pygame.display.set_mode((self.width, self.height), HWSURFACE | DOUBLEBUF)
         pygame.display.set_caption('Path Finding Visualiser')
         
         self.draw_maze()
@@ -96,19 +95,23 @@ class PygameMaze():
                     pf.bfs(self)
                 elif self.algo == 'DFS':
                     pf.dfs(self)
+                elif self.algo == 'RBFS':
+                    pf.rbfs(self, self.start_node)
             elif event.key == K_SPACE and pygame.key.get_mods() & KMOD_CTRL:
                 self.draw_maze()
                 self.redraw_obstacles()
             elif event.key == K_SPACE:
                 self.blocked.clear()
                 self.draw_maze()
-            elif event.key == K_1 or event.key == K_2 or event.key == K_3:
+            elif event.key == K_1 or event.key == K_2 or event.key == K_3 or event.key == K_4:
                 if event.key == K_1:
                     self.algo = 'A*'
                 elif event.key == K_2:
                     self.algo = 'BFS'
                 elif event.key == K_3:
                     self.algo = 'DFS'
+                elif event.key == K_4:
+                    self.algo = 'RBFS'
                 self.tk_popup('Algorithm Changed!', 'Algorithm changed to ' + self.algo, 'info')
         elif event.type == MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
@@ -137,14 +140,18 @@ class PygameMaze():
             showinfo(title, message)
         temp.destroy()
     
-    def render_exploration(self, point, rtype):
+    def render_exploration(self, point, rtype, group=False):
         """
         This function is used to show how nodes are explored when A* runs.
         """
-        if rtype == 'visited':
-            pdraw.rect(self._display, self.colours['red'], (point[0] + 1, point[1] + 1, 19, 19))
-        elif rtype == 'available':
-            pdraw.rect(self._display, self.colours['green'], (point[0] + 1, point[1] + 1, 19, 19))
+        if group:
+            for node in point:
+                pdraw.rect(self._display, self.colours['green'], (node.pos[0] + 1, node.pos[1] + 1, 19, 19))
+        else:
+            if rtype == 'visited':
+                pdraw.rect(self._display, self.colours['red'], (point[0] + 1, point[1] + 1, 19, 19))
+            elif rtype == 'clear':
+                pdraw.rect(self._display, self.colours['white'], (point[0] + 1, point[1] + 1, 19, 19))
         
         pygame.time.wait(50) # defines time interval between each update of exploration
         pygame.display.update()
