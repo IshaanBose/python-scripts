@@ -156,7 +156,7 @@ def dfs(mazegui):
 
 def rbfs(mazegui, currnode, flimit=float('inf')):
     """
-    This function implements the A* path finding algorithm for the maze.
+    This function implements the RBFS path finding algorithm for the maze.
     """
     if not isinstance(currnode, Node):
         currnode = Node(currnode, Node((-1, -1)))
