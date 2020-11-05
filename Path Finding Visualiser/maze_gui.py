@@ -33,7 +33,7 @@ import path_finding as pf
 
 class PygameMaze():
     """
-    This class creates the maze GUI and contains functions that implements the A* algorithm.
+    This class creates the maze GUI and contains functions that implements many path finding algorithm.
     """
     def __init__(self, maze_dim, start_node, goal_node, show_exp, algo):
         """
@@ -142,7 +142,7 @@ class PygameMaze():
     
     def render_exploration(self, point, rtype, group=False):
         """
-        This function is used to show how nodes are explored when A* runs.
+        This function is used to show how nodes are explored when the path finding algo runs.
         """
         if group:
             for node in point:
