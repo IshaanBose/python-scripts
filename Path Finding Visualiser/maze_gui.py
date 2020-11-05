@@ -29,7 +29,6 @@ from pygame.locals import *
 from pygame import draw as pdraw
 import math
 import os
-from _datastructs import *
 import path_finding as pf
 
 class PygameMaze():
@@ -66,13 +65,13 @@ class PygameMaze():
         self.blocked = list()
         self.colours = {'black' : (0, 0, 0), 'white' : (255, 255, 255), 'green':(0, 255, 0), 'mustard yellow':(255, 208, 0),
                         'light pink': (255, 122, 251), 'red': (255, 0, 0), 'dark blue': (2, 68, 173)}
-        self.size = self.width, self.height = maze_dim[0] * 20, maze_dim[1] * 20
+        self.width, self.height = maze_dim[0] * 20, maze_dim[1] * 20
         
     def on_init(self):
         """
         For initialising data before the display surface is shown and drawing all static elements of the maze.
         """
-        self._display = pygame.display.set_mode(self.size, HWSURFACE | DOUBLEBUF)
+        self._display = pygame.display.set_mode((self.width, self.height), HWSURFACE | DOUBLEBUF)
         pygame.display.set_caption('Path Finding Visualiser')
         
         self.draw_maze()
