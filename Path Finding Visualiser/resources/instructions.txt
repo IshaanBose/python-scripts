@@ -12,6 +12,9 @@ You can press the corresponding key to switch algorithms while on the maze GUI:
 1. A*
 2. BFS
 3. DFS
+4. RBFS
+
+NOTE: RBFS is a recursive function and in the current version, RBFS cannot be stopped during exploration or execution. Also, due to the small differences in f values of nodes and their neighbours, RBFS does a lot of backtracking if it encounters an obstacle in optimal path. This makes it take a significantly long amount of time to execute. My advice would to limit the maze to a 5x5 grid if you want to run it.
 
 Closing the maze screen allows you to go back to the maze creation screen.
 
