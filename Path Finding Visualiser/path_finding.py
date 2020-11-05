@@ -45,21 +45,23 @@ def astar_path(mazegui):
                 node = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode, 20)
             neighbours.append(node)
             
+        newavail = list()
         for node in neighbours:
             if not VISITED.inlist(node)[0]: # heuristic is consistent, so no need to re-visit nodes
                 if not AVAILABLE.inlist(node)[0]:
                     node.g += currnode.g
                     node.f = node.g + sqrt((node.pos[0] - goal.pos[0])**2 + (node.pos[1] - goal.pos[1])**2)
                     AVAILABLE.append(node)
-                    if mazegui.show_exp:
-                        mazegui.render_exploration(node.pos, 'available')
+                    newavail.append(node)
                 else:
                     opennode = AVAILABLE[AVAILABLE.inlist(node)[1]] # if the node is already available to visit, we want to check if there is a better path for it
                     if opennode.g > node.g + currnode.g:
                         opennode.g = node.g + currnode.g
                         opennode.f = opennode.g + sqrt((node.pos[0] - goal.pos[0])**2 + (node.pos[1] - goal.pos[1])**2)
                         opennode.parent = currnode
-            
+        if mazegui.show_exp:
+            mazegui.render_exploration(newavail, 'available', True)
+        
         AVAILABLE.remove(currnode)
     
     mazegui.tk_popup('No Path Found!', "No path found! Press 'Space' to clear the screen.")
@@ -90,6 +92,7 @@ def bfs(mazegui):
                 currnode = currnode.parent
             return mazegui.show_path(path)
         
+        newavail = list()
         for i in [[-20, -20], [-20, 0], [-20, 20], [0, 20], [20, 20], [20, 0], [20, -20], [0, -20]]:
             if currnode.pos[0] + i[0] < 0 or currnode.pos[1] + i[1] < 0 or currnode.pos[0] + i[0] >= mazegui.width or currnode.pos[1] + i[1] >= mazegui.height:
                 continue
@@ -100,8 +103,10 @@ def bfs(mazegui):
             node = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode)
             if not Q.inlist(node)[0] and not VISITED.inlist(node)[0]:
                 Q.enqueue(node)
-                if mazegui.show_exp:
-                    mazegui.render_exploration(node.pos, 'available')
+                newavail.append(node)
+        
+        if mazegui.show_exp:
+            mazegui.render_exploration(newavail, 'available', True)
     
     mazegui.tk_popup('No Path Found!', "No path found! Press 'Space' to clear the screen.")
 
@@ -131,6 +136,7 @@ def dfs(mazegui):
                 currnode = currnode.parent
             return mazegui.show_path(path)
         
+        newavail = list()
         for i in [[-20, 20], [-20, 0], [-20, -20], [0, -20], [20, -20], [20, 0], [20, 20], [0, 20]]:
             if currnode.pos[0] + i[0] < 0 or currnode.pos[1] + i[1] < 0 or currnode.pos[0] + i[0] >= mazegui.width or currnode.pos[1] + i[1] >= mazegui.height:
                 continue
@@ -141,8 +147,10 @@ def dfs(mazegui):
             node = Node((currnode.pos[0] + i[0], currnode.pos[1] + i[1]), currnode)
             if not stack.inlist(node)[0] and not VISITED.inlist(node)[0]:
                 stack.push(node)
-                if mazegui.show_exp:
-                    mazegui.render_exploration(node.pos, 'available')
+                newavail.append(node)
+        
+        if mazegui.show_exp:
+            mazegui.render_exploration(newavail, 'available', True)
     
     mazegui.tk_popup('No Path Found!', "No path found! Press 'Space' to clear the screen.")
 

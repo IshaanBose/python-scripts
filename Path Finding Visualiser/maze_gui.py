@@ -141,16 +141,18 @@ class PygameMaze():
             showinfo(title, message)
         temp.destroy()
     
-    def render_exploration(self, point, rtype):
+    def render_exploration(self, point, rtype, group=False):
         """
         This function is used to show how nodes are explored when A* runs.
         """
-        if rtype == 'visited':
-            pdraw.rect(self._display, self.colours['red'], (point[0] + 1, point[1] + 1, 19, 19))
-        elif rtype == 'available':
-            pdraw.rect(self._display, self.colours['green'], (point[0] + 1, point[1] + 1, 19, 19))
-        elif rtype == 'clear':
-            pdraw.rect(self._display, self.colours['white'], (point[0] + 1, point[1] + 1, 19, 19))
+        if group:
+            for node in point:
+                pdraw.rect(self._display, self.colours['green'], (node.pos[0] + 1, node.pos[1] + 1, 19, 19))
+        else:
+            if rtype == 'visited':
+                pdraw.rect(self._display, self.colours['red'], (point[0] + 1, point[1] + 1, 19, 19))
+            elif rtype == 'clear':
+                pdraw.rect(self._display, self.colours['white'], (point[0] + 1, point[1] + 1, 19, 19))
         
         pygame.time.wait(50) # defines time interval between each update of exploration
         pygame.display.update()
