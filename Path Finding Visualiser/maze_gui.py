@@ -32,6 +32,8 @@ import os
 import path_finding as pf
 
 ROOT_X, ROOT_Y = 0, 0
+COLOURS = {'black' : (0, 0, 0), 'white' : (255, 255, 255), 'green':(0, 255, 0), 'mustard yellow':(255, 208, 0), 
+            'light pink': (255, 122, 251), 'red': (255, 0, 0), 'dark blue': (2, 68, 173)}
 
 class PygameMaze():
     """
@@ -73,8 +75,6 @@ class PygameMaze():
         self.start_node = (start_node[0] * 20, start_node[1] * 20)
         self.goal_node = (goal_node[0] * 20, goal_node[1] * 20)
         self.blocked = list()
-        self.colours = {'black' : (0, 0, 0), 'white' : (255, 255, 255), 'green':(0, 255, 0), 'mustard yellow':(255, 208, 0),
-                        'light pink': (255, 122, 251), 'red': (255, 0, 0), 'dark blue': (2, 68, 173)}
         self.width, self.height = maze_dim[0] * 20, maze_dim[1] * 20
         
     def on_init(self):
@@ -155,14 +155,16 @@ class PygameMaze():
         """
         This function is used to show how nodes are explored when the path finding algo runs.
         """
+        global COLOURS
+        
         if group:
             for node in point:
-                pdraw.rect(self._display, self.colours['green'], (node.pos[0] + 1, node.pos[1] + 1, 19, 19))
+                pdraw.rect(self._display, COLOURS['green'], (node.pos[0] + 1, node.pos[1] + 1, 19, 19))
         else:
             if rtype == 'visited':
-                pdraw.rect(self._display, self.colours['red'], (point[0] + 1, point[1] + 1, 19, 19))
+                pdraw.rect(self._display, COLOURS['red'], (point[0] + 1, point[1] + 1, 19, 19))
             elif rtype == 'clear':
-                pdraw.rect(self._display, self.colours['white'], (point[0] + 1, point[1] + 1, 19, 19))
+                pdraw.rect(self._display, COLOURS['white'], (point[0] + 1, point[1] + 1, 19, 19))
         
         pygame.time.wait(50) # defines time interval between each update of exploration
         pygame.display.update()
@@ -171,6 +173,8 @@ class PygameMaze():
         """
         This function is used to show the final path from the start node to goal node.
         """
+        global COLOURS
+        
         if self.show_exp:
             pygame.time.wait(1000) # giving time for user to look at finished exploration, time is given in ms
             self.draw_maze()
@@ -178,43 +182,48 @@ class PygameMaze():
         
         for i in path:
             if i != self.start_node and i != self.goal_node:
-                pdraw.rect(self._display, self.colours['light pink'], (i[0] + 1, i[1] + 1, 19, 19))
+                pdraw.rect(self._display, COLOURS['light pink'], (i[0] + 1, i[1] + 1, 19, 19))
     
     def draw_maze(self):
         """
         This function is used to draw/redraw the maze.
         """
-        self._display.fill(self.colours['white'])
+        global COLOURS
+        
+        self._display.fill(COLOURS['white'])
         
         for i in range(0, self.width + 1, 20):
-            pdraw.line(self._display, self.colours['black'], (i, 0), (i, self.height))
+            pdraw.line(self._display, COLOURS['black'], (i, 0), (i, self.height))
         for i in range(0, self.height + 1, 20):
-            pdraw.line(self._display, self.colours['black'], (0, i), (self.width, i))
+            pdraw.line(self._display, COLOURS['black'], (0, i), (self.width, i))
         
-        pdraw.rect(self._display, self.colours['mustard yellow'], (self.start_node[0] + 1, self.start_node[1] + 1, 19, 19)) # start node
-        pdraw.rect(self._display, self.colours['dark blue'], (self.goal_node[0] + 1, self.goal_node[1] + 1, 19, 19)) # goal node
+        pdraw.rect(self._display, COLOURS['mustard yellow'], (self.start_node[0] + 1, self.start_node[1] + 1, 19, 19)) # start node
+        pdraw.rect(self._display, COLOURS['dark blue'], (self.goal_node[0] + 1, self.goal_node[1] + 1, 19, 19)) # goal node
     
     def redraw_obstacles(self):
         """
         This function is used to redraw the obstacles after redrawing the maze.
         """
+        global COLOURS
+        
         for i in self.blocked:
-            pdraw.rect(self._display, self.colours['black'], (i[0], i[1], 20, 20))
+            pdraw.rect(self._display, COLOURS['black'], (i[0], i[1], 20, 20))
     
     def modify_obstacle(self, mouse_pos):
         """
         This function is used to draw/remove an obstacle on the square the user clicks on.
         """
+        global COLOURS
         for i in range(0, self.width - 19, 20):
             for j in range(0, self.height - 19, 20):
                 if (mouse_pos[0] >= i and mouse_pos[1] >= j) and (mouse_pos[0] <= i + 20 and mouse_pos[1] <= j + 20) and (i, j) not in [self.start_node, self.goal_node]:
                     if (i, j) not in self.blocked:
                         self.blocked.append((i, j))
-                        pdraw.rect(self._display, self.colours['black'], (i, j, 20, 20))
+                        pdraw.rect(self._display, COLOURS['black'], (i, j, 20, 20))
                         return
                     else:
                         self.blocked.remove((i, j))
-                        pdraw.rect(self._display, self.colours['white'], (i + 1, j + 1, 19, 19))
+                        pdraw.rect(self._display, COLOURS['white'], (i + 1, j + 1, 19, 19))
                         return
     
     def on_cleanup(self):
@@ -415,7 +424,7 @@ class TkInstructions(Frame):
         Sets instruction text.
         """
         dirname = os.path.dirname(os.path.abspath(__file__))
-        filename = os.path.join(dirname, 'resources', 'instructions.txt')
+        filename = os.path.join(dirname, 'resources', 'docs', 'instructions.txt')
         with open(filename) as f:
             instmsg = f.read()
 
