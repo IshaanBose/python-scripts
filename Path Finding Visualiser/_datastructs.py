@@ -60,9 +60,6 @@ class Queue(AugList):
         `is_empty()`
             Returns True if QUEUE is empty, else False.
 
-        `exists(value)`
-            Returns True if value exists in QUEUE, else False.
-
         Examples
         --------
         >>> from datastructs import Queue
@@ -182,12 +179,6 @@ class Stack(AugList):
 
         `is_empty()`
             Returns True if STACK is empty, else False.
-        
-        `get_top()`
-            Returns the data at the top of the STACK.
-
-        `exists(value)`
-            Returns True if value exists in STACK, else False.
 
         Examples
         --------
@@ -287,16 +278,3 @@ class Stack(AugList):
                 If there is one or more data in the STACK.
         """
         return len(self) == 0
-
-    def get_top(self):
-        """
-            `Stack.get_top()`
-
-            Gets the data at the top of the STACK.
-
-            Returns
-            -------
-            `data`
-                Value at the top of the STACK.
-        """
-        return self[0]
