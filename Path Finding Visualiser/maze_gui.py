@@ -72,6 +72,8 @@ class PygameMaze():
         self._display = None
         self.show_exp = show_exp
         self.algo = algo
+        self.mouse_drag = False
+        self.clear_obs = False
         self.start_node = (start_node[0] * 20, start_node[1] * 20)
         self.goal_node = (goal_node[0] * 20, goal_node[1] * 20)
         self.blocked = list()
@@ -124,8 +126,25 @@ class PygameMaze():
                     self.algo = 'RBFS'
                 self.tk_popup('Algorithm Changed!', 'Algorithm changed to ' + self.algo, 'info')
         elif event.type == MOUSEBUTTONDOWN:
+            self.mouse_drag = True
             pos = pygame.mouse.get_pos()
-            self.modify_obstacle(pos)
+            
+            if len(self.blocked) == 0:
+                self.modify_obstacle(pos)
+                return
+            else:
+                for i in self.blocked:
+                    if (pos[0] >= i[0] and pos[1] >= i[1]) and (pos[0] <= i[0] + 20 and pos[1] <= i[1] + 20) and i not in [self.start_node, self.goal_node]:
+                        self.clear_obs = True
+                        break
+                    self.clear_obs = False
+                self.modify_obstacle(pos, self.clear_obs)
+        elif event.type == MOUSEMOTION:
+            if self.mouse_drag:
+                pos = pygame.mouse.get_pos()
+                self.modify_obstacle(pos, self.clear_obs)
+        elif event.type == MOUSEBUTTONUP:
+            self.mouse_drag = False
     
     def stop_path_finding(self):
         """
@@ -155,8 +174,6 @@ class PygameMaze():
         """
         This function is used to show how nodes are explored when the path finding algo runs.
         """
-        global COLOURS
-        
         if group:
             for node in point:
                 pdraw.rect(self._display, COLOURS['green'], (node.pos[0] + 1, node.pos[1] + 1, 19, 19))
@@ -173,8 +190,6 @@ class PygameMaze():
         """
         This function is used to show the final path from the start node to goal node.
         """
-        global COLOURS
-        
         if self.show_exp:
             pygame.time.wait(1000) # giving time for user to look at finished exploration, time is given in ms
             self.draw_maze()
@@ -188,8 +203,6 @@ class PygameMaze():
         """
         This function is used to draw/redraw the maze.
         """
-        global COLOURS
-        
         self._display.fill(COLOURS['white'])
         
         for i in range(0, self.width + 1, 20):
@@ -204,27 +217,26 @@ class PygameMaze():
         """
         This function is used to redraw the obstacles after redrawing the maze.
         """
-        global COLOURS
-        
         for i in self.blocked:
-            pdraw.rect(self._display, COLOURS['black'], (i[0], i[1], 20, 20))
+            pdraw.rect(self._display, COLOURS['black'], (i[0], i[1], 19, 19))
     
-    def modify_obstacle(self, mouse_pos):
+    def modify_obstacle(self, mouse_pos, clear=False):
         """
         This function is used to draw/remove an obstacle on the square the user clicks on.
         """
-        global COLOURS
         for i in range(0, self.width - 19, 20):
             for j in range(0, self.height - 19, 20):
                 if (mouse_pos[0] >= i and mouse_pos[1] >= j) and (mouse_pos[0] <= i + 20 and mouse_pos[1] <= j + 20) and (i, j) not in [self.start_node, self.goal_node]:
-                    if (i, j) not in self.blocked:
-                        self.blocked.append((i, j))
-                        pdraw.rect(self._display, COLOURS['black'], (i, j, 20, 20))
-                        return
+                    if not clear:
+                        if not (i, j) in self.blocked:
+                            self.blocked.append((i, j))
+                            pdraw.rect(self._display, COLOURS['black'], (i, j, 19, 19))
+                            return
                     else:
-                        self.blocked.remove((i, j))
-                        pdraw.rect(self._display, COLOURS['white'], (i + 1, j + 1, 19, 19))
-                        return
+                        if (i, j) in self.blocked:
+                            self.blocked.remove((i, j))
+                            pdraw.rect(self._display, COLOURS['white'], (i + 1, j + 1, 19, 19))
+                            return
     
     def on_cleanup(self):
         """
