@@ -9,24 +9,32 @@ Provides the following classes:
 4. TkInstructions - used to display the instructions
 """
 
-from tkinter import Tk
-from tkinter import Label
-from tkinter import Entry
-from tkinter import Button
-from tkinter import SOLID
-from tkinter import Radiobutton
-from tkinter import Frame
-from tkinter import Text
-from tkinter import ttk
-from tkinter import font as tkfont
-from tkinter import BooleanVar
-from tkinter import StringVar
-from tkinter import INSERT
-from tkinter.messagebox import showwarning
-from tkinter.messagebox import showinfo
-import pygame
-from pygame.locals import *
-from pygame import draw as pdraw
+try:
+    from tkinter import Tk
+    from tkinter import Label
+    from tkinter import Entry
+    from tkinter import Button
+    from tkinter import SOLID
+    from tkinter import Radiobutton
+    from tkinter import Frame
+    from tkinter import Text
+    from tkinter import ttk
+    from tkinter import font as tkfont
+    from tkinter import BooleanVar
+    from tkinter import StringVar
+    from tkinter import INSERT
+    from tkinter.messagebox import showwarning
+    from tkinter.messagebox import showinfo
+except ModuleNotFoundError:
+    print('tkinter module not installed. Refer: https://tkdocs.com/tutorial/install.html')
+    quit()
+try:
+    import pygame
+    from pygame.locals import *
+    from pygame import draw as pdraw
+except ModuleNotFoundError:
+    print('pygame module not installed. Run: %installdir%python.exe -m pip install -U pygame --user')
+    quit()
 import math
 import os
 import path_finding as pf
