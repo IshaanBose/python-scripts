@@ -8,7 +8,8 @@ lst.gold = [x] # where x is a tuple containing the co-ordinates of all gold plac
 
 Simply replace `lst = None` with the above two lines of code.
 
-The agent has a solve rate of 68.858% out of 1,000,000 random (but solvable) test cases.
+The agent has a solve rate of 68.858% out of 1,000,000 random (but solvable) test cases. These test cases were conducted on 4x4 world's with 3 pits, 1 wumpus, 1 gold and 1 arrow for the agent.
+Solve rate will vary depending on world state.
 """
 
 from random import randint
